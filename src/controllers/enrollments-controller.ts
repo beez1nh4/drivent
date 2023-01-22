@@ -22,6 +22,10 @@ export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, re
       userId: req.userId,
     });
 
+    if (!req.body) {
+      return res.sendStatus(httpStatus.BAD_REQUEST);
+    }
+
     return res.sendStatus(httpStatus.OK);
   } catch (error) {
     return res.sendStatus(httpStatus.BAD_REQUEST);
@@ -31,8 +35,16 @@ export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, re
 export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response) {
   const { cep } = req.query as Record<string, string>;
 
+  if (cep.length !== 8) {
+    return res.sendStatus(204);
+  }
+  if (/^\d+$/.test(cep) === false) {
+    return res.sendStatus(400);
+  }
+
   try {
     const address = await enrollmentsService.getAddressFromCEP(cep);
+
     res.status(httpStatus.OK).send(address);
   } catch (error) {
     if (error.name === "NotFoundError") {
